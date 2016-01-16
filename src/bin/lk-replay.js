@@ -48,6 +48,6 @@ const argv = yargs
 replay({
     bucket: argv.bucket,
     filter: argv.filter,
-    startDate: argv.startDate,
+    startDate: moment(argv.startDate, DATE_FORMAT),
     stream: argv.stream
 });

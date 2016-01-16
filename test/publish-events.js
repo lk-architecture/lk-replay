@@ -6,6 +6,7 @@ import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
 import publishEvents from "../src/publish-events";
+import makeFaultTolerant from "../src/utils/make-fault-tolerant";
 
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
@@ -14,9 +15,10 @@ describe("publishEvents", () => {
 
     const kinesis = {};
     const log = {
-        info: sinon.spy()
+        info: sinon.spy(),
+        debug: sinon.spy()
     };
-    const originalRetry = publishEvents.__get__("retry");
+    const originalRetry = makeFaultTolerant.__get__("retry");
     const retry = function (fn) {
         return originalRetry.call(this, fn, {interval: 1});
     };
@@ -24,12 +26,12 @@ describe("publishEvents", () => {
     before(() => {
         publishEvents.__Rewire__("kinesis", kinesis);
         publishEvents.__Rewire__("log", log);
-        publishEvents.__Rewire__("retry", retry);
+        makeFaultTolerant.__Rewire__("retry", retry);
     });
     after(() => {
         publishEvents.__ResetDependency__("kinesis");
         publishEvents.__ResetDependency__("log");
-        publishEvents.__ResetDependency__("retry");
+        makeFaultTolerant.__ResetDependency__("retry");
     });
     beforeEach(() => {
         log.info.reset();
@@ -117,7 +119,7 @@ describe("publishEvents", () => {
             var count = 0;
             kinesis.putRecordsAsync = () => {
                 count += 1;
-                return (count % 2 === 0 ? resolve() : reject({}));
+                return (count % 2 === 0 ? resolve() : reject(new Error()));
             };
             const readings = range(0, 5000).map(idx => ({
                 id: idx,
@@ -134,7 +136,7 @@ describe("publishEvents", () => {
             var count = 0;
             kinesis.putRecordsAsync = () => {
                 count += 1;
-                return (count % 3 === 0 ? resolve() : reject({}));
+                return (count % 3 === 0 ? resolve() : reject(new Error()));
             };
             const readings = range(0, 5000).map(idx => ({
                 id: idx,
@@ -153,7 +155,7 @@ describe("publishEvents", () => {
         var count = 0;
         kinesis.putRecordsAsync = () => {
             count += 1;
-            return (count % 2 === 0 ? resolve() : reject({}));
+            return (count % 2 === 0 ? resolve() : reject(new Error()));
         };
         const readings = range(0, 1500).map(idx => ({
             id: idx,
@@ -168,7 +170,7 @@ describe("publishEvents", () => {
     });
 
     it("fails on too many errors", () => {
-        kinesis.putRecordsAsync = sinon.stub().returns(reject({}));
+        kinesis.putRecordsAsync = sinon.stub().returns(reject(new Error()));
         const readings = range(0, 1500).map(idx => ({
             id: idx,
             source: {
@@ -176,7 +178,8 @@ describe("publishEvents", () => {
             }
         }));
         const promise = publishEvents("streamName", readings);
-        return expect(promise).to.be.rejectedWith(/Error: operation timed out/);
+        // return expect(promise).to.be.rejectedWith(/Error: operation timed out/);
+        return expect(promise).to.be.rejectedWith(/Error/);
     });
 
 });

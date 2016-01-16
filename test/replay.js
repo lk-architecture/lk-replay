@@ -1,6 +1,7 @@
 import {resolve} from "bluebird";
 import chai, {expect} from "chai";
 import chaiAsPromised from "chai-as-promised";
+import moment from "moment";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
@@ -49,7 +50,7 @@ describe("replay", () => {
         it("daysFrom called correctly", async () => {
             await replay({
                 bucket: "bucket",
-                startDate: "2015-01-01",
+                startDate: moment("2015-01-01", "YYYY-MM-DD"),
                 stream: "stream"
             });
             expect(daysFrom).to.have.callCount(1);
@@ -61,7 +62,7 @@ describe("replay", () => {
         it("retrieveEventsByDirectory called correctly", async () => {
             await replay({
                 bucket: "bucket",
-                startDate: "2015-01-01",
+                startDate: moment("2015-01-01", "YYYY-MM-DD"),
                 stream: "stream"
             });
             expect(retrieveEventsByDirectory).to.have.callCount(5);
@@ -85,7 +86,7 @@ describe("replay", () => {
         it("publishEvents called correctly", async () => {
             await replay({
                 bucket: "bucket",
-                startDate: "2015-01-01",
+                startDate: moment("2015-01-01", "YYYY-MM-DD"),
                 stream: "stream"
             });
             expect(publishEvents).to.have.callCount(5);
