@@ -178,8 +178,7 @@ describe("publishEvents", () => {
             }
         }));
         const promise = publishEvents("streamName", readings);
-        // return expect(promise).to.be.rejectedWith(/Error: operation timed out/);
-        return expect(promise).to.be.rejectedWith(/Error/);
+        return expect(promise).to.be.rejectedWith(/Error: operation timed out/);
     });
 
 });
