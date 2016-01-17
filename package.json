@@ -53,6 +53,7 @@
     "bluebird-retry": "^0.5.2",
     "bunyan": "^1.5.1",
     "moment": "^2.11.1",
+    "node-uuid": "^1.4.7",
     "promise-retry": "^1.0.1",
     "ramda": "^0.19.1",
     "s3": "^4.4.0",

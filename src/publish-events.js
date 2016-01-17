@@ -1,10 +1,20 @@
 import {mapSeries} from "bluebird";
-import {head, last, splitEvery} from "ramda";
+import {v4} from "node-uuid";
+import {has, head, last, splitEvery} from "ramda";
 
+import {SOURCESLESS_USE_RANDOM_PARTITION_KEY} from "./config";
 import kinesis from "./services/kinesis";
 import log from "./services/logger";
 import makeFaultTolerant from "./utils/make-fault-tolerant";
 import timer from "./utils/timer";
+
+function getPartitionKey (event) {
+    return (
+        event.source && has("kinesisPartitionKey", event.source) ?
+        event.source.kinesisPartitionKey :
+        SOURCESLESS_USE_RANDOM_PARTITION_KEY ? v4() : "__partition_key__"
+    );
+}
 
 function publishSlice (streamName) {
     /*
@@ -19,7 +29,7 @@ function publishSlice (streamName) {
         const records = {
             Records: events.map(event => ({
                 Data: JSON.stringify(event),
-                PartitionKey: event.source.kinesisPartitionKey
+                PartitionKey: getPartitionKey(event)
             })),
             StreamName: streamName
         };

@@ -181,4 +181,45 @@ describe("publishEvents", () => {
         return expect(promise).to.be.rejectedWith(/Error: operation timed out/);
     });
 
+    describe("when events have no `source.kinesisPartitionKey`", () => {
+
+        afterEach(() => {
+            publishEvents.__ResetDependency__("SOURCESLESS_USE_RANDOM_PARTITION_KEY");
+            publishEvents.__ResetDependency__("v4");
+        });
+
+        it("uses a random PartitionKey if env SOURCESLESS_USE_RANDOM_PARTITION_KEY=true", () => {
+            publishEvents.__Rewire__("v4", () => "uuid");
+            publishEvents.__Rewire__("SOURCESLESS_USE_RANDOM_PARTITION_KEY", true);
+            kinesis.putRecordsAsync = sinon.stub().returns(resolve());
+            const readings = [{id: "1"}];
+            return publishEvents("streamName", readings)
+                .then(() => {
+                    expect(kinesis.putRecordsAsync).to.have.been.calledWith({
+                        Records: [{
+                            Data: JSON.stringify({id: "1"}),
+                            PartitionKey: "uuid"
+                        }],
+                        StreamName: "streamName"
+                    });
+                });
+        });
+
+        it("uses __partition_key__ otherwise", () => {
+            kinesis.putRecordsAsync = sinon.stub().returns(resolve());
+            const readings = [{id: "1"}];
+            return publishEvents("streamName", readings)
+                .then(() => {
+                    expect(kinesis.putRecordsAsync).to.have.been.calledWith({
+                        Records: [{
+                            Data: JSON.stringify({id: "1"}),
+                            PartitionKey: "__partition_key__"
+                        }],
+                        StreamName: "streamName"
+                    });
+                });
+        });
+
+    });
+
 });
