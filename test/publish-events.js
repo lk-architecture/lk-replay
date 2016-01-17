@@ -14,6 +14,7 @@ chai.use(sinonChai);
 describe("publishEvents", () => {
 
     const kinesis = {};
+    const getKinesisClient = () => kinesis;
     const log = {
         info: sinon.spy(),
         debug: sinon.spy()
@@ -24,12 +25,12 @@ describe("publishEvents", () => {
     };
 
     before(() => {
-        publishEvents.__Rewire__("kinesis", kinesis);
+        publishEvents.__Rewire__("getKinesisClient", getKinesisClient);
         publishEvents.__Rewire__("log", log);
         makeFaultTolerant.__Rewire__("retry", retry);
     });
     after(() => {
-        publishEvents.__ResetDependency__("kinesis");
+        publishEvents.__ResetDependency__("getKinesisClient");
         publishEvents.__ResetDependency__("log");
         makeFaultTolerant.__ResetDependency__("retry");
     });
@@ -53,7 +54,7 @@ describe("publishEvents", () => {
                     kinesisPartitionKey: idx
                 }
             }));
-            return publishEvents("streamName", readings).then(() => {
+            return publishEvents({name: "streamName"}, readings).then(() => {
                 invocations
                     .map((date, idx) => (
                         idx === 0 ? 0 : date - invocations[idx - 1]
@@ -72,7 +73,7 @@ describe("publishEvents", () => {
                     kinesisPartitionKey: idx
                 }
             }));
-            return publishEvents("streamName", readings).then(() => {
+            return publishEvents({name: "streamName"}, readings).then(() => {
                 expect(kinesis.putRecordsAsync).to.have.callCount(20);
                 range(0, 20)
                     .map(idx => kinesis.putRecordsAsync.getCall(idx))
@@ -94,7 +95,7 @@ describe("publishEvents", () => {
                     kinesisPartitionKey: idx
                 }
             }));
-            return publishEvents("streamName", readings)
+            return publishEvents({name: "streamName"}, readings)
                 .then(() => invocationsArgs.forEach((arg, sliceIndex) => {
                     expect(arg).to.deep.equal({
                         Records: range(sliceIndex * 250, (sliceIndex + 1) * 250).map(idx => ({
@@ -127,7 +128,7 @@ describe("publishEvents", () => {
                     kinesisPartitionKey: idx
                 }
             }));
-            return publishEvents("streamName", readings).then(() => {
+            return publishEvents({name: "streamName"}, readings).then(() => {
                 expect(count).to.equal(20 * 2);
             });
         });
@@ -144,7 +145,7 @@ describe("publishEvents", () => {
                     kinesisPartitionKey: idx
                 }
             }));
-            return publishEvents("streamName", readings).then(() => {
+            return publishEvents({name: "streamName"}, readings).then(() => {
                 expect(count).to.equal(20 * 3);
             });
         });
@@ -163,7 +164,7 @@ describe("publishEvents", () => {
                 kinesisPartitionKey: idx
             }
         }));
-        return publishEvents("streamName", readings).then(() => {
+        return publishEvents({name: "streamName"}, readings).then(() => {
             expect(count).to.equal(6 * 2);
             expect(log.info).to.have.callCount(6);
         });
@@ -177,7 +178,7 @@ describe("publishEvents", () => {
                 kinesisPartitionKey: idx
             }
         }));
-        const promise = publishEvents("streamName", readings);
+        const promise = publishEvents({name: "streamName"}, readings);
         return expect(promise).to.be.rejectedWith(/Error: operation timed out/);
     });
 
@@ -193,7 +194,7 @@ describe("publishEvents", () => {
             publishEvents.__Rewire__("SOURCESLESS_USE_RANDOM_PARTITION_KEY", true);
             kinesis.putRecordsAsync = sinon.stub().returns(resolve());
             const readings = [{id: "1"}];
-            return publishEvents("streamName", readings)
+            return publishEvents({name: "streamName"}, readings)
                 .then(() => {
                     expect(kinesis.putRecordsAsync).to.have.been.calledWith({
                         Records: [{
@@ -208,7 +209,7 @@ describe("publishEvents", () => {
         it("uses __partition_key__ otherwise", () => {
             kinesis.putRecordsAsync = sinon.stub().returns(resolve());
             const readings = [{id: "1"}];
-            return publishEvents("streamName", readings)
+            return publishEvents({name: "streamName"}, readings)
                 .then(() => {
                     expect(kinesis.putRecordsAsync).to.have.been.calledWith({
                         Records: [{

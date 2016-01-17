@@ -14,7 +14,8 @@ Replay events in the lk-architecture.
 lk-replay\
     --bucket "events-bucket-name"\
     --startDate "2016-01-02"\
-    --stream "kinesis-stream-name"
+    --streamName "kinesis-stream-name"
+    --streamRegion "kinesis-stream-region"
 ```
 
 ### Debug

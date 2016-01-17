@@ -3,7 +3,7 @@ import {v4} from "node-uuid";
 import {has, head, last, splitEvery} from "ramda";
 
 import {SOURCESLESS_USE_RANDOM_PARTITION_KEY} from "./config";
-import kinesis from "./services/kinesis";
+import getKinesisClient from "./services/kinesis";
 import log from "./services/logger";
 import makeFaultTolerant from "./utils/make-fault-tolerant";
 import timer from "./utils/timer";
@@ -16,7 +16,8 @@ function getPartitionKey (event) {
     );
 }
 
-function publishSlice (streamName) {
+function publishSlice (stream) {
+    const kinesis = getKinesisClient(stream);
     /*
     *   Using async/await instead of a promise chain in the following function
     *   leaves an unhandled promise somewhere between the retries which produces
@@ -31,7 +32,7 @@ function publishSlice (streamName) {
                 Data: JSON.stringify(event),
                 PartitionKey: getPartitionKey(event)
             })),
-            StreamName: streamName
+            StreamName: stream.name
         };
         return kinesis.putRecordsAsync(records)
             .then(result => {
@@ -50,10 +51,10 @@ function publishSlice (streamName) {
     };
 }
 
-export default function publishEvents (streamName, events) {
+export default function publishEvents (stream, events) {
     const slices = splitEvery(250, events);
     const faultTolerantPublishSlice = makeFaultTolerant(
-        publishSlice(streamName)
+        publishSlice(stream)
     );
     return mapSeries(slices, faultTolerantPublishSlice);
 }

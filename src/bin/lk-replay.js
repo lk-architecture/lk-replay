@@ -27,9 +27,14 @@ const argv = yargs
         describe: "Replay start date",
         type: "string"
     })
-    .option("stream", {
+    .option("streamName", {
         demand: true,
-        describe: "Target kinesis stream",
+        describe: "Target kinesis stream name",
+        type: "string"
+    })
+    .option("streamRegion", {
+        demand: true,
+        describe: "Target kinesis stream region",
         type: "string"
     })
     .check(argv => {
@@ -49,5 +54,8 @@ replay({
     bucket: argv.bucket,
     filter: argv.filter,
     startDate: moment(argv.startDate, DATE_FORMAT),
-    stream: argv.stream
+    stream: {
+        name: argv.streamName,
+        region: argv.streamRegion
+    }
 });
