@@ -1,16 +1,16 @@
 {
   "name": "lk-replay",
-  "version": "1.0.4",
-  "description": "Deploy static web-apps on AWS",
-  "main": "lib/lk-replay.js",
+  "version": "1.0.0",
+  "description": "Command line utility to replay events",
+  "main": "lib/bin/lk-replay.js",
   "bin": {
-    "lk-replay": "./bin/lk-replay.js"
+    "lk-replay": "./lib/bin/lk-replay.js"
   },
   "scripts": {
     "build": "babel src --out-dir lib",
     "clean": "rimraf lib coverage",
     "coverage": "NODE_ENV=test babel-node $(npm bin)/isparta cover $(npm bin)/_mocha -- --require babel-polyfill --recursive",
-    "coveralls": "cat coverage/lcov.info | coveralls",
+    "codecov": "codecov",
     "start-s3": "mkdir -p /tmp/s3rver_test & s3rver -h localhost -p 4567 -d /tmp/s3rver_test",
     "dev:test": "npm test -- --watch",
     "dev": "npm-run-all -p dev:test",
@@ -18,14 +18,14 @@
     "prepublish": "npm run clean && npm run build",
     "test": "NODE_ENV=test mocha --compilers js:babel-core/register --require babel-polyfill --recursive"
   },
-  "author": "Paolo Scanferla <paolo.scanferla@mondora.com>",
-  "license": "MIT",
+  "author": "Team Wattellina <wattellina@mondora.com>",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mondora/lk-replay.git"
+    "url": "https://github.com/lk-architecture/lk-replay.git"
   },
   "bugs": {
-    "url": "https://github.com/mondora/lk-replay/issues"
+    "url": "https://github.com/lk-architecture/lk-replay/issues"
   },
   "devDependencies": {
     "babel": "^6.3.13",
@@ -37,7 +37,7 @@
     "babel-preset-stage-0": "^6.3.13",
     "chai": "^3.4.1",
     "chai-as-promised": "^5.2.0",
-    "coveralls": "^2.11.4",
+    "codecov": "^1.0.1",
     "eslint": "^1.10.3",
     "isparta": "^4.0.0",
     "mocha": "^2.3.4",
