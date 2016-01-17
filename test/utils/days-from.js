@@ -31,7 +31,8 @@ describe("daysFrom", () => {
             ]);
         });
 
-        it("correct length", () => {
+        it("correct length", function () {
+            this.timeout(0);
             const result = daysFrom(new Date("1900-01-01"));
             expect(result).to.have.length(
                 // (days in normal year * years) + leap days
@@ -39,7 +40,8 @@ describe("daysFrom", () => {
             );
         });
 
-        it("uniqueness", () => {
+        it("uniqueness", function () {
+            this.timeout(0);
             const result = daysFrom(new Date("1900-01-01"));
             const dayMap = {};
             var allUnique = true;
