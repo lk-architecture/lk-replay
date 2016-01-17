@@ -1,13 +1,15 @@
 import bunyan from "bunyan";
 import {identity} from "ramda";
 
-import * as config from "../config";
+import {LOG_LEVEL, NODE_ENV} from "../config";
 
-export default bunyan.createLogger({
+const log = bunyan.createLogger({
     name: "lk-replay",
     streams: [
-        config.NODE_ENV !== "test" ? {
+        NODE_ENV !== "test" ? {
             stream: process.stdout
         } : null
     ].filter(identity)
 });
+log.level(LOG_LEVEL);
+export default log;

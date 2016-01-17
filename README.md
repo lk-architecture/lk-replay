@@ -17,6 +17,10 @@ lk-replay\
     --stream "kinesis-stream-name"
 ```
 
+### Debug
+
+To display `log.debug` logs run the script with `env LOG_LEVEL=debug`.
+
 ### TODO
 
 * implement event filtering
