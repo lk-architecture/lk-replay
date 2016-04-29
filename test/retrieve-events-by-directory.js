@@ -18,28 +18,37 @@ describe("retrieveEventsByDirectory", () => {
         "key_0", "key_1", "key_2", "key_3", "key_4"
     ]));
 
-    before(() => {
+    beforeEach(() => {
         retrieveEventsByDirectory.__Rewire__("getObject", getObject);
         retrieveEventsByDirectory.__Rewire__("listObjects", listObjects);
-    });
-    after(() => {
-        retrieveEventsByDirectory.__ResetDependency__("getObject");
-        retrieveEventsByDirectory.__ResetDependency__("listObjects");
-    });
-    beforeEach(() => {
         getObject.reset();
         listObjects.reset();
     });
+    afterEach(() => {
+        retrieveEventsByDirectory.__ResetDependency__("getObject");
+        retrieveEventsByDirectory.__ResetDependency__("listObjects");
+    });
 
     it("returns all events in the directory", () => {
-        return retrieveEventsByDirectory("bucket", "directory")
+        return retrieveEventsByDirectory("bucket", "directory/")
+            .then(events => {
+                expect(events).to.have.length(5);
+            });
+    });
+
+    it("filters out the directory s3 object from the objects list, as it does not contain an event", () => {
+        const listObjects = sinon.spy(() => resolve([
+            "directory/", "key_0", "key_1", "key_2", "key_3", "key_4"
+        ]));
+        retrieveEventsByDirectory.__Rewire__("listObjects", listObjects);
+        return retrieveEventsByDirectory("bucket", "directory/")
             .then(events => {
                 expect(events).to.have.length(5);
             });
     });
 
     it("returns parsed events", () => {
-        return retrieveEventsByDirectory("bucket", "directory")
+        return retrieveEventsByDirectory("bucket", "directory/")
             .then(events => {
                 expect(events).to.deep.equal([
                     {id: "key_0"},
@@ -52,15 +61,15 @@ describe("retrieveEventsByDirectory", () => {
     });
 
     it("correctly calls listObjects", () => {
-        return retrieveEventsByDirectory("bucket", "directory")
+        return retrieveEventsByDirectory("bucket", "directory/")
             .then(() => {
                 expect(listObjects).to.have.callCount(1);
-                expect(listObjects).to.have.been.calledWith("bucket", "directory");
+                expect(listObjects).to.have.been.calledWith("bucket", "directory/");
             });
     });
 
     it("correctly calls getObject", () => {
-        return retrieveEventsByDirectory("bucket", "directory")
+        return retrieveEventsByDirectory("bucket", "directory/")
             .then(() => {
                 expect(getObject).to.have.callCount(5);
                 expect(getObject).to.have.been.calledWith("bucket", "key_0");

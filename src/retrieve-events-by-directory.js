@@ -7,7 +7,9 @@ import timer from "./utils/timer";
 
 export default async function retrieveEventsByDirectory (bucket, directory) {
     const getElapsed = timer();
-    const keys = await listObjects(bucket, directory);
+    const keys = (await listObjects(bucket, directory))
+        // Filter out the directory object, if present
+        .filter(key => key !== directory);
     log.debug(
         `Retrieved ${keys.length} keys from directory ${directory} in ${getElapsed()}ms`
     );
